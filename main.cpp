@@ -215,7 +215,7 @@ int main() {
                                     bool isEncrypt = (action == 1);
                                     
                                     if (isEncrypt) {
-                                        // Шифрование - генерируем ключ
+                                        // Генерация ключа для шифрования
                                         bool keyFileValid = false;
                                         while (!keyFileValid) {
                                             cout << "Введите путь для сохранения ключа: ";
@@ -243,7 +243,7 @@ int main() {
                                             continue;
                                         }
                                     } else {
-                                        // Дешифрование - загружаем ключ
+                                        // Загрузка ключа для дешифрования
                                         bool keyFileValid = false;
                                         while (!keyFileValid) {
                                             cout << "Введите путь к файлу с ключом: ";
@@ -356,7 +356,7 @@ int main() {
                                     bool isEncrypt = (action == 1);
                                     
                                     if (isEncrypt) {
-                                        // Шифрование - генерируем ключ
+                                        // Генерация ключа для шифрования 
                                         int blockSize;
                                         while (true) {
                                             cout << "Введите размер блока для ключа: ";
@@ -401,7 +401,7 @@ int main() {
                                             continue;
                                         }
                                     } else {
-                                        // Дешифрование - загружаем ключ
+                                        // Загрузка ключа для дешифрования 
                                         bool keyFileValid = false;
                                         while (!keyFileValid) {
                                             cout << "Введите путь к файлу с ключом: ";
@@ -514,7 +514,7 @@ int main() {
                                     bool isEncrypt = (action == 1);
                                     
                                     if (isEncrypt) {
-                                        // Шифрование - генерируем ключ
+                                        // Генерация ключа для шифрования
                                         int length;
                                         while (true) {
                                             cout << "Введите длину ключа: ";
@@ -559,7 +559,7 @@ int main() {
                                             continue;
                                         }
                                     } else {
-                                        // Дешифрование - загружаем ключ
+                                        // Загрузка ключа для дешифрования
                                         bool keyFileValid = false;
                                         while (!keyFileValid) {
                                             cout << "Введите путь к файлу с ключом: ";
