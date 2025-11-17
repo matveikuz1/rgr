@@ -7,8 +7,8 @@
 
 namespace fs = std::filesystem;
 
-std::string readFileAsString(const std::string& filename);
-void writeFile(const std::string& filename, const std::string& content);
+std::string readFileAsBytes(const std::string& filename);
+void writeFileAsBytes(const std::string& filename, const std::string& content);
 bool validateFilePath(const std::string& path, bool checkExists = true);
 bool ensureFileExists(std::string& filePath);
 std::string readFromConsole();

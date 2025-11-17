@@ -27,4 +27,4 @@ std::string loadRichelieuKey(const std::string& filename);
 }
 #endif
 
-#endif // RICHELIEU_H
+#endif 

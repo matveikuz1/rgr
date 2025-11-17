@@ -19,7 +19,7 @@
 using namespace std;
 namespace fs = std::filesystem;
 
-// Определения типов для функций из библиотек
+// Создание безопасных указателей на функции из динамических библиотек
 typedef string (*hillEncryptFunc)(const string&, const vector<vector<int>>&);
 typedef string (*hillDecryptFunc)(const string&, const vector<vector<int>>&);
 typedef vector<vector<int>> (*generateHillKeyFunc)(size_t);
@@ -51,7 +51,7 @@ enum class DataSource {
     FILE
 };
 
-optional<DataSource> selectDataSource() {
+optional<DataSource> selectDataSource() { //интерфейс выбора источника данных
     while (true) {
         cout << "\nВыберите источник данных:\n";
         cout << "1. Ввести текст с консоли\n";
@@ -104,7 +104,7 @@ int main() {
     loadVigenereKeyFunc loadVigenereKey = nullptr;
 
     // Загрузка функций Hill
-    if (hillLib) {
+    if (hillLib) { //далее получение указателя на функцию по имени
         hillEncrypt = (hillEncryptFunc)dlsym(hillLib, "hillEncrypt");
         hillDecrypt = (hillDecryptFunc)dlsym(hillLib, "hillDecrypt");
         generateHillKey = (generateHillKeyFunc)dlsym(hillLib, "generateHillKey");
@@ -113,8 +113,8 @@ int main() {
 
         if (!hillEncrypt || !hillDecrypt || !generateHillKey || !saveHillKey || !loadHillKey) {
             cerr << "Ошибка: При загрузке функций Hill: " << dlerror() << endl;
-            dlclose(hillLib);
-            hillLib = nullptr;
+            dlclose(hillLib); //выгрузка библиотеки
+            hillLib = nullptr; //библиотека недоступна 
         }
     }
 
@@ -215,7 +215,7 @@ int main() {
                                     bool isEncrypt = (action == 1);
                                     
                                     if (isEncrypt) {
-                                        // Генерация ключа для шифрования
+                                        // Шифрование - генерируем ключ
                                         bool keyFileValid = false;
                                         while (!keyFileValid) {
                                             cout << "Введите путь для сохранения ключа: ";
@@ -243,7 +243,7 @@ int main() {
                                             continue;
                                         }
                                     } else {
-                                        // Загрузка ключа для дешифрования
+                                        // Дешифрование - загружаем ключ
                                         bool keyFileValid = false;
                                         while (!keyFileValid) {
                                             cout << "Введите путь к файлу с ключом: ";
@@ -279,7 +279,7 @@ int main() {
                                             
                                             inputFileValid = true;
                                         }
-                                        content = readFileAsString(inputFile);
+                                        content = readFileAsBytes(inputFile);
                                     }
 
                                     string outputFile;
@@ -306,13 +306,13 @@ int main() {
                                         if (isEncrypt) {
                                             vector<vector<int>> key = loadHillKey(keyFile);
                                             result = hillEncrypt(content, key);
-                                            cout << "Зашифрованный текст:\n" << result << "\n";
+                                            cout << "Данные зашифрованы. Размер: " << result.size() << " байт\n";
                                         } else {
                                             vector<vector<int>> key = loadHillKey(keyFile);
                                             result = hillDecrypt(content, key);
-                                            cout << "Расшифрованный текст:\n" << result << "\n";
+                                            cout << "Данные расшифрованы. Размер: " << result.size() << " байт\n";
                                         }
-                                        writeFile(outputFile, result);
+                                        writeFileAsBytes(outputFile, result);
                                         cout << "Результат сохранен в " << outputFile << endl;
                                     } catch (const exception& e) {
                                         cerr << "Ошибка: " << e.what() << endl;
@@ -356,7 +356,7 @@ int main() {
                                     bool isEncrypt = (action == 1);
                                     
                                     if (isEncrypt) {
-                                        // Генерация ключа для шифрования 
+                                        // Шифрование - генерируем ключ
                                         int blockSize;
                                         while (true) {
                                             cout << "Введите размер блока для ключа: ";
@@ -401,7 +401,7 @@ int main() {
                                             continue;
                                         }
                                     } else {
-                                        // Загрузка ключа для дешифрования 
+                                        // Дешифрование - загружаем ключ
                                         bool keyFileValid = false;
                                         while (!keyFileValid) {
                                             cout << "Введите путь к файлу с ключом: ";
@@ -437,7 +437,7 @@ int main() {
                                             
                                             inputFileValid = true;
                                         }
-                                        content = readFileAsString(inputFile);
+                                        content = readFileAsBytes(inputFile);
                                     }
 
                                     string outputFile;
@@ -464,13 +464,13 @@ int main() {
                                         if (isEncrypt) {
                                             string key = loadRichelieuKey(keyFile);
                                             result = richelieuEncrypt(content, key);
-                                            cout << "Зашифрованный текст:\n" << result << "\n";
+                                            cout << "Данные зашифрованы. Размер: " << result.size() << " байт\n";
                                         } else {
                                             string key = loadRichelieuKey(keyFile);
                                             result = richelieuDecrypt(content, key);
-                                            cout << "Расшифрованный текст:\n" << result << "\n";
+                                            cout << "Данные расшифрованы. Размер: " << result.size() << " байт\n";
                                         }
-                                        writeFile(outputFile, result);
+                                        writeFileAsBytes(outputFile, result);
                                         cout << "Результат сохранен в " << outputFile << endl;
                                     } catch (const exception& e) {
                                         cerr << "Ошибка: " << e.what() << endl;
@@ -514,7 +514,7 @@ int main() {
                                     bool isEncrypt = (action == 1);
                                     
                                     if (isEncrypt) {
-                                        // Генерация ключа для шифрования
+                                        // Шифрование - генерируем ключ
                                         int length;
                                         while (true) {
                                             cout << "Введите длину ключа: ";
@@ -559,7 +559,7 @@ int main() {
                                             continue;
                                         }
                                     } else {
-                                        // Загрузка ключа для дешифрования
+                                        // Дешифрование - загружаем ключ
                                         bool keyFileValid = false;
                                         while (!keyFileValid) {
                                             cout << "Введите путь к файлу с ключом: ";
@@ -595,7 +595,7 @@ int main() {
                                             
                                             inputFileValid = true;
                                         }
-                                        content = readFileAsString(inputFile);
+                                        content = readFileAsBytes(inputFile);
                                     }
 
                                     string outputFile;
@@ -622,13 +622,13 @@ int main() {
                                         if (isEncrypt) {
                                             string key = loadVigenereKey(keyFile);
                                             result = vigenereEncrypt(content, key);
-                                            cout << "Зашифрованный текст:\n" << result << "\n";
+                                            cout << "Данные зашифрованы. Размер: " << result.size() << " байт\n";
                                         } else {
                                             string key = loadVigenereKey(keyFile);
                                             result = vigenereDecrypt(content, key);
-                                            cout << "Расшифрованный текст:\n" << result << "\n";
+                                            cout << "Данные расшифрованы. Размер: " << result.size() << " байт\n";
                                         }
-                                        writeFile(outputFile, result);
+                                        writeFileAsBytes(outputFile, result);
                                         cout << "Результат сохранен в " << outputFile << endl;
                                     } catch (const exception& e) {
                                         cerr << "Ошибка: " << e.what() << endl;

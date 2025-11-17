@@ -7,30 +7,40 @@
 
 using namespace std;
 namespace fs = std::filesystem;
-// Шифрование/дешифрование (decrypt = false/true)
-// Основная функция обработки текста для шифра Виженера (шифрование/дешифрование)
-string vigenereProcess(const string& text, const string& key, bool decrypt) {
+
+// Шифрование/дешифрование бинарных данных
+string vigenereProcess(const string& data, const string& key, bool decrypt) {
     if (key.empty()) throw invalid_argument("Ключ не может быть пустым");
     
     string result;
-    for (size_t i = 0; i < text.size(); ++i) {
-        char textChar = text[i];
-        char keyChar = key[i % key.size()];
+    result.reserve(data.size()); // резерв памяти
+    
+    for (size_t i = 0; i < data.size(); ++i) {
+        unsigned char dataByte = data[i];
+        unsigned char keyByte = key[i % key.size()];
         
         // Побайтовый сдвиг по модулю 256
-        int shift = static_cast<unsigned char>(keyChar);
+        int shift = keyByte; 
         if (decrypt) shift = -shift;
         
-        // Выполняем модульное сложение/вычитание
-        int encryptedChar = (static_cast<unsigned char>(textChar) + shift) % 256;
-        if (encryptedChar < 0) encryptedChar += 256; // Коррекция для дешифрования
+        int resultByte = (dataByte + shift) % 256; //основа шифрования (формула)
+        if (resultByte < 0) resultByte += 256;
         
-        result += static_cast<char>(encryptedChar);
+        result += static_cast<char>(resultByte); // коррекция отрицательных
     }
     return result;
 }
 
-// Шифрование файла с использованием шифра Виженера
+// Шифрование
+string vigenereEncrypt(const string& data, const string& key) {
+    return vigenereProcess(data, key, false);
+}
+
+// Дешифрование
+string vigenereDecrypt(const string& ciphertext, const string& key) {
+    return vigenereProcess(ciphertext, key, true);
+}
+
 void vigenereEncryptFile(const std::string& inputFile, const std::string& outputFile,
                         const std::string& key) {
     if (!fs::exists(inputFile)) {
@@ -40,7 +50,6 @@ void vigenereEncryptFile(const std::string& inputFile, const std::string& output
     ifstream in(inputFile, ios::binary);
     if (!in) throw runtime_error("Ошибка: не удалось открыть файл: " + inputFile);
 
-    // Создаем директории для выходного файла при необходимости
     fs::path outPath(outputFile);
     if (outPath.has_parent_path()) {
         fs::create_directories(outPath.parent_path());
@@ -49,13 +58,11 @@ void vigenereEncryptFile(const std::string& inputFile, const std::string& output
     ofstream out(outputFile, ios::binary);
     if (!out) throw runtime_error("Ошибка: не удалось создать файл: " + outputFile);
 
-    // Читаем, шифруем и записываем содержимое файла
     string content((istreambuf_iterator<char>(in)), istreambuf_iterator<char>());
     string encrypted = vigenereEncrypt(content, key);
-    out << encrypted;
+    out.write(encrypted.data(), encrypted.size());
 }
 
-// Дешифрование файла, зашифрованного шифром Виженера
 void vigenereDecryptFile(const std::string& inputFile, const std::string& outputFile,
                         const std::string& key) {
     if (!fs::exists(inputFile)) {
@@ -65,7 +72,6 @@ void vigenereDecryptFile(const std::string& inputFile, const std::string& output
     ifstream in(inputFile, ios::binary);
     if (!in) throw runtime_error("Ошибка: не удалось открыть файл: " + inputFile);
 
-    // Создаем директории для выходного файла при необходимости
     fs::path outPath(outputFile);
     if (outPath.has_parent_path()) {
         fs::create_directories(outPath.parent_path());
@@ -74,31 +80,19 @@ void vigenereDecryptFile(const std::string& inputFile, const std::string& output
     ofstream out(outputFile, ios::binary);
     if (!out) throw runtime_error("Ошибка: не удалось создать файл: " + outputFile);
 
-    // Читаем, дешифруем и записываем содержимое файла
     string content((istreambuf_iterator<char>(in)), istreambuf_iterator<char>());
     string decrypted = vigenereDecrypt(content, key);
-    out << decrypted;
+    out.write(decrypted.data(), decrypted.size());
 }
 
-// Функция шифрования текста шифром Виженера
-string vigenereEncrypt(const string& text, const string& key) {
-    return vigenereProcess(text, key, false);
-}
-
-// Функция дешифрования текста, зашифрованного шифром Виженера
-string vigenereDecrypt(const string& ciphertext, const string& key) {
-    return vigenereProcess(ciphertext, key, true);
-}
-
-// Генерация случайного ключа для шифра Виженера
+// Генерация ключа (случайные байты)
 string generateVigenereKey(int length) {
     if (length <= 0) throw invalid_argument("Длина ключа должна быть положительной");
     
     random_device rd;
     mt19937 gen(rd());
-    uniform_int_distribution<> dist(32, 126); // Все возможные байты
+    uniform_int_distribution<> dist(0, 255); // Все возможные байты
     
-    // Генерируем ключ из случайных символов
     string key;
     for (int i = 0; i < length; ++i) {
         key += static_cast<char>(dist(gen));
@@ -106,14 +100,14 @@ string generateVigenereKey(int length) {
     return key;
 }
 
-// Сохранение ключа шифра Виженера в файл (бинарный режим)
+// Сохранение ключа в бинарный файл
 void saveVigenereKey(const string& key, const string& filename) {
     ofstream file(filename, ios::binary);
     if (!file) throw runtime_error("Не удалось открыть файл для записи ключа");
     file.write(key.data(), key.size());
 }
 
-// Загрузка ключа шифра Виженера из файла
+// Загрузка ключа из бинарного файла
 string loadVigenereKey(const string& filename) {
     ifstream file(filename, ios::binary);
     if (!file) throw runtime_error("Не удалось открыть файл с ключом");

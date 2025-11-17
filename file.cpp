@@ -1,13 +1,12 @@
 #include "file.h"
 #include <fstream>
 #include <stdexcept>
-#include <locale>
 #include <vector>
 #include <filesystem>
 #include <iostream>
 using namespace std;
 
-std::string readFileAsString(const std::string& filename) {
+std::string readFileAsBytes(const std::string& filename) {
     ifstream file(filename, ios::binary | ios::ate);
     if (!file) {
         throw runtime_error("Ошибка: файл не существует или недоступен: " + filename);
@@ -15,17 +14,17 @@ std::string readFileAsString(const std::string& filename) {
 
     auto size = file.tellg();
     if (size == 0) {
-        throw runtime_error("Ошибка: файл пуст: " + filename);
+        return ""; // Пустой файл - возвращаем пустую строку
     }
-    file.seekg(0, ios::beg);
-
-    file.imbue(locale("ru_RU.UTF-8"));
-    string content((istreambuf_iterator<char>(file)), istreambuf_iterator<char>());
+    
+    string content(size, '\0');
+    file.seekg(0); //создание файла
+    file.read(&content[0], size); //чтение файоа в буфер
     
     return content;
 }
 
-void writeFile(const std::string& filename, const std::string& content) {
+void writeFileAsBytes(const std::string& filename, const std::string& content) {
     fs::path filepath(filename);
     if (filepath.has_parent_path()) {
         fs::create_directories(filepath.parent_path());
@@ -36,15 +35,14 @@ void writeFile(const std::string& filename, const std::string& content) {
         throw runtime_error("Ошибка: не удалось создать файл или директорию: " + filename);
     }
     
-    file.imbue(locale("ru_RU.UTF-8"));
-    file << content;
+    file.write(content.data(), content.size());
     
     if (file.fail()) {
         throw runtime_error("Ошибка записи в файл: " + filename);
     }
 }
 
-bool validateFilePath(const string& path, bool checkExists) {
+bool validateFilePath(const string& path, bool checkExists) { //проверка правильного пути
     if (path.empty()) {
         cerr << "Ошибка: Путь не может быть пустым" << endl;
         return false;
@@ -58,26 +56,26 @@ bool validateFilePath(const string& path, bool checkExists) {
     return true;
 }
 
-bool ensureFileExists(string& filePath) {
+bool ensureFileExists(string& filePath) { //Создание файла в нужной директории
     try {
         if (!fs::exists(filePath)) {
             cout << "Файл не существовал. Создаю новый: " << filePath << endl;
             
             fs::path path(filePath);
             if (path.has_parent_path()) {
-                fs::create_directories(path.parent_path());
+                fs::create_directories(path.parent_path()); // создание директории
             }
             
-            ofstream file(filePath);
+            ofstream file(filePath, ios::binary);
             if (!file) {
                 cerr << "Ошибка: Не удалось создать файл" << endl;
-                return false;
+                return false; //проверка выполнения
             }
         }
         return true;
     } catch (const exception& e) {
         cerr << "Ошибка: При работе с файлом: " << e.what() << endl;
-        return false;
+        return false; 
     }
 }
 
@@ -85,7 +83,7 @@ string readFromConsole() {
     cout << "Введите текст (завершите пустой строкой):\n";
     string content;
     string line;
-    while (getline(cin, line) && !line.empty()) {
+    while (getline(cin, line) && !line.empty()) { //чтение до ввода пустой строки
         content += line + "\n";
     }
     if (!content.empty()) {
